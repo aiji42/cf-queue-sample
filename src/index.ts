@@ -12,7 +12,24 @@
  */
 
 export default {
-	async fetch(request, env, ctx): Promise<Response> {
-		return new Response('Hello World!');
-	},
+  async queue(batch, env) {
+    for (const msg of batch.messages) {
+      try {
+        // メッセージ(msg)を受け取った何らかの処理
+        console.log(msg.body);
+        msg.ack();
+      } catch (e) {
+        // エラーハンドリング
+        msg.retry();
+      }
+    }
+  },
+  async fetch(request, env) {
+    const message = {
+      url: request.url,
+      method: request.method,
+    };
+    await env.MY_QUEUE.send(message);
+    return new Response('Success!');
+  },
 } satisfies ExportedHandler<Env>;
