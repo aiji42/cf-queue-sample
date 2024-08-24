@@ -11,16 +11,18 @@
  * Learn more at https://developers.cloudflare.com/workers/
  */
 
+const BASE_DELAY_SEC = 30;
+
 export default {
   async queue(batch, env) {
     for (const msg of batch.messages) {
       try {
         // メッセージ(msg)を受け取った何らかの処理
-        console.log(msg.body);
-        msg.ack();
       } catch (e) {
-        // エラーハンドリング
-        msg.retry();
+        // 何らかのエラーハンドリング
+        msg.retry({
+          delaySeconds: BASE_DELAY_SEC ** msg.attempts, // 30^{配信回数}秒遅延して再配信させる
+        });
       }
     }
   },
