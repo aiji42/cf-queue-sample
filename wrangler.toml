@@ -10,11 +10,10 @@ binding = "MY_QUEUE"
 
 [[queues.consumers]]
 queue = "my-queue"
-max_batch_size = 10
-max_batch_timeout = 30
-max_retries = 10
-max_concurrency = 3
+dead_letter_queue = "my-dead-letter-queue"
 
+[[queues.consumers]]
+queue = "my-dead-letter-queue"
 
 # Automatically place your workloads in an optimal location to minimize latency.
 # If you are running back-end logic in a Worker, running it closer to your back-end infrastructure

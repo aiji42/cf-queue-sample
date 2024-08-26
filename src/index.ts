@@ -15,13 +15,27 @@ const BASE_DELAY_SEC = 30;
 
 export default {
   async queue(batch, env) {
-    for (const msg of batch.messages) {
-      try {
-        // メッセージ(msg)を受け取った何らかの処理
-      } catch (e) {
-        // 何らかのエラーハンドリング
-        msg.retry({
-          delaySeconds: BASE_DELAY_SEC ** msg.attempts, // 30^{配信回数}秒遅延して再配信させる
+    // my-queue用の処理
+    if (batch.queue === 'my-queue') {
+      for (const msg of batch.messages) {
+        try {
+          // メッセージ(msg)を受け取った何らかの処理
+          throw new Error('Something went wrong');
+        } catch (e) {
+          // エラーハンドリング
+          msg.retry();
+        }
+      }
+    }
+
+    // DLQの処理
+    if (batch.queue === 'my-dead-letter-queue') {
+      for (const msg of batch.messages) {
+        // 例: DLQにメッセージが格納されたことをメールで通知
+        await env.MyMailService.send({
+          to: 'admin@example.com',
+          subject: `DLQ Alert: ${msg.id}`,
+          body: `Message:\n${JSON.stringify(msg.body, null, 2)}`,
         });
       }
     }
